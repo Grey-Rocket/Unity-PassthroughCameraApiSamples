@@ -164,7 +164,7 @@ MonoBehaviour:
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
-  m_PresetInfoIsWorld: 1
+  m_PresetInfoIsWorld: 0
 --- !u!114 &8219300776248800292
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -194,6 +194,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f79b7777c2e8e419c98791f75a37daf8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_webCamTextureManager: {fileID: 0}
+  m_cameraAccess: {fileID: 0}
   m_debugText: {fileID: 331063821990452063}
   m_renderer: {fileID: 0}

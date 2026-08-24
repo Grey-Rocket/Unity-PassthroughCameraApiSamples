@@ -77,6 +77,7 @@ Shader "Meta/PCA/ShaderSampleWater" {
                 float2 detailDistortedUV = i.uv + normal.xy * (_WaveAmplitude/100);
 
                 // Mirror the texture
+                distortedUV.x = 1 - distortedUV.x;
                 distortedUV.y = 1 - distortedUV.y;
 
                 // Set the color
