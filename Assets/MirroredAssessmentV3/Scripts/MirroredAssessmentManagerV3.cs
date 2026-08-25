@@ -79,11 +79,12 @@ namespace MirroredAssessment
             Matrix4x4 vp = m_mainCamera.projectionMatrix * m_mainCamera.worldToCameraMatrix;
             m_mirrorMaterial.SetMatrix("_MonoCameraVP", vp);
 
-            // Shrink/grow the mirrored region as the head turns.
-            // Turning right (positive delta) shrinks the mirror; left grows it.
-            // Clamped to [0, 0.5] so the mirror never exceeds half the screen.
+            // Map head yaw to mirror split:
+            //   center (deltaYaw = 0) → splitX = 0.5 (left half mirrored, right half normal)
+            //   looking right (positive deltaYaw) → splitX → 0 (no mirror)
+            //   looking left (negative deltaYaw) → clamped at 0.5 (still 50/50)
             float deltaYaw = Mathf.DeltaAngle(m_initialYaw, m_mainCamera.transform.eulerAngles.y);
-            float splitX = Mathf.Clamp(0.5f + deltaYaw * m_yawSensitivity, 0.5f, 1.0f);
+            float splitX = Mathf.Clamp(0.5f - deltaYaw * m_yawSensitivity, 0f, 0.5f);
             m_mirrorMaterial.SetFloat("_SplitX", splitX);
         }
 

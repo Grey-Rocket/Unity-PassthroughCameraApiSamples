@@ -69,21 +69,18 @@ Shader "Meta/PCA/MirrorShaderV3"
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 
-                float2 uv = i.monoScreenPos.xy / i.monoScreenPos.w;
+                float2 screenUV = i.monoScreenPos.xy / i.monoScreenPos.w;
 
-                // Flip horizontally — left-right mirror effect.
-                uv.x = 1.0 - uv.x;
-                // Flip vertically — corrects the image being upside-down on Quest XR.
-                uv.y = 1.0 - uv.y;
+                // Left of split: flip X so this region mirrors the right half.
+                // Right of split: use X as-is for the normal camera view.
+                float uvX = (screenUV.x < _SplitX) ? (1.0 - screenUV.x) : screenUV.x;
 
-                // Scale UV around centre: > 1 zooms out (less magnified).
+                float2 uv;
+                uv.x = uvX;
+                uv.y = 1.0 - screenUV.y;  // Quest camera is vertically flipped
                 uv = (uv - 0.5) * _UVScale + 0.5;
 
-                uv.x = 0.5 - abs(uv.x - 0.5);
-
-                // Discard any fragment that falls outside the valid camera image.
-                // Without this, out-of-range UVs clamp to the texture edge and
-                // produce a stretched blurry border around the mirror image.
+                // Discard fragments outside the valid camera image to avoid stretched edges.
                 if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0)
                     discard;
 
