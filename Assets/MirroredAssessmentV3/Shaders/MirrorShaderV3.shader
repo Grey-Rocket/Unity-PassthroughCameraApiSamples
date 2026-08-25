@@ -4,7 +4,7 @@ Shader "Meta/PCA/MirrorShaderV3"
     {
         _MainTex  ("Texture", 2D) = "white" {}
         // > 1 zooms out (shows more of the camera image); < 1 zooms in.
-        _UVScale  ("UV Scale", Float) = 1.5
+        _UVScale  ("UV Scale", Float) = 1.0
         // Fraction of the LEFT screen that shows the mirrored reflection (0-0.5).
         // 0 = no mirror, 0.5 = left half mirrors right half.
         _SplitX   ("Mirror Split", Float) = 0.5
@@ -71,13 +71,17 @@ Shader "Meta/PCA/MirrorShaderV3"
 
                 float2 screenUV = i.monoScreenPos.xy / i.monoScreenPos.w;
 
-                // Left of split: flip X so this region mirrors the right half.
-                // Right of split: use X as-is for the normal camera view.
+                // Draw a 2-pixel black line at the split boundary.
+                float pixelWidth = fwidth(screenUV.x);
+                if (abs(screenUV.x - _SplitX) < pixelWidth * 2.0)
+                    return fixed4(0, 0, 0, 1);
+
+                // Left of split: flip X to mirror what the camera currently sees.
+                // Right of split: use X as-is for the normal passthrough view.
+                // Both stable — only update when the camera image changes, not with head rotation.
                 float uvX = (screenUV.x < _SplitX) ? (1.0 - screenUV.x) : screenUV.x;
 
-                float2 uv;
-                uv.x = uvX;
-                uv.y = 1.0 - screenUV.y;  // Quest camera is vertically flipped
+                float2 uv = float2(uvX, 1.0 - screenUV.y);
                 uv = (uv - 0.5) * _UVScale + 0.5;
 
                 // Discard fragments outside the valid camera image to avoid stretched edges.

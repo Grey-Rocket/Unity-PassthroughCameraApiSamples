@@ -37,9 +37,6 @@ namespace MirroredAssessment
             m_mainCamera = Camera.main;
             m_initialYaw = m_mainCamera.transform.eulerAngles.y;
 
-            // Keep the passthrough layer visible — we want normal passthrough when looking forward.
-            // The floor plane only covers the view when the user looks down.
-
             m_mirrorMaterial = new Material(m_mirrorShader);
             m_mirrorMaterial.SetTexture("_MainTex", m_cameraAccess.GetTexture());
             m_mirrorMaterial.SetFloat("_UVScale", m_imageScale);
