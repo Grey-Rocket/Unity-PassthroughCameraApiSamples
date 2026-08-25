@@ -80,8 +80,11 @@ namespace MirroredAssessment
             //   center (deltaYaw = 0) → splitX = 0.5 (left half mirrored, right half normal)
             //   looking right (positive deltaYaw) → splitX → 0 (no mirror)
             //   looking left (negative deltaYaw) → clamped at 0.5 (still 50/50)
+            if (OVRInput.GetDown(OVRInput.Button.One))
+                m_initialYaw = m_mainCamera.transform.eulerAngles.y;
+
             float deltaYaw = Mathf.DeltaAngle(m_initialYaw, m_mainCamera.transform.eulerAngles.y);
-            float splitX = Mathf.Clamp(0.5f - deltaYaw * m_yawSensitivity, 0f, 0.5f);
+            float splitX = Mathf.Clamp(0.5f - Mathf.Max(0f, Mathf.Abs(deltaYaw) - 10f) * m_yawSensitivity, 0f, 0.5f);
             m_mirrorMaterial.SetFloat("_SplitX", splitX);
         }
 

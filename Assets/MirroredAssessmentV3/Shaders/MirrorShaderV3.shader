@@ -73,7 +73,7 @@ Shader "Meta/PCA/MirrorShaderV3"
 
                 // Draw a 2-pixel black line at the split boundary.
                 float pixelWidth = fwidth(screenUV.x);
-                if (abs(screenUV.x - _SplitX) < pixelWidth * 2.0)
+                if (abs(screenUV.x - _SplitX) < pixelWidth * 10.0)
                     return fixed4(0, 0, 0, 1);
 
                 // Left of split: flip X to mirror what the camera currently sees.

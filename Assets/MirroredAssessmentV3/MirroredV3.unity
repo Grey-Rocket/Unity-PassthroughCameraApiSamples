@@ -2003,6 +2003,7 @@ MonoBehaviour:
   m_mirrorShader: {fileID: 4800000, guid: ebc82fd322549b94496f872ef9bfd763, type: 3}
   m_planeSize: 16
   m_imageScale: 2
+  m_yawSensitivity: 0.011
   m_floorOffset: 2
 --- !u!114 &1748868315269612484
 MonoBehaviour:
