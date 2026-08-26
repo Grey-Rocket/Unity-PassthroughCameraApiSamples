@@ -8,6 +8,8 @@ Shader "Meta/PCA/MirrorShaderV3"
         // Fraction of the LEFT screen that shows the mirrored reflection (0-0.5).
         // 0 = no mirror, 0.5 = left half mirrors right half.
         _SplitX   ("Mirror Split", Float) = 0.5
+        // Rotation applied to the mirrored (left) side only, in degrees.
+        _MirrorRotation ("Mirror Rotation", Float) = 0.0
     }
     SubShader
     {
@@ -44,6 +46,7 @@ Shader "Meta/PCA/MirrorShaderV3"
             sampler2D _MainTex;
             float     _UVScale;
             float     _SplitX;
+            float     _MirrorRotation;
             // Set every frame from C# using the main camera's (mono) VP matrix.
             float4x4  _MonoCameraVP;
 
@@ -82,6 +85,17 @@ Shader "Meta/PCA/MirrorShaderV3"
                 float uvX = (screenUV.x < _SplitX) ? (1.0 - screenUV.x) : screenUV.x;
 
                 float2 uv = float2(uvX, 1.0 - screenUV.y);
+
+                // Rotate the mirrored (left) side by _MirrorRotation degrees (clockwise).
+                if (screenUV.x < _SplitX)
+                {
+                    float angle = _MirrorRotation * (3.14159265 / 180.0);
+                    float cosA = cos(angle);
+                    float sinA = sin(angle);
+                    float2 c = uv - 0.5;
+                    uv = float2(cosA * c.x + sinA * c.y, -sinA * c.x + cosA * c.y) + 0.5;
+                }
+
                 uv = (uv - 0.5) * _UVScale + 0.5;
 
                 // Discard fragments outside the valid camera image to avoid stretched edges.
