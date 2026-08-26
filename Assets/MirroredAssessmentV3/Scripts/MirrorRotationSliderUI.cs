@@ -95,7 +95,7 @@ namespace MirroredAssessment
             m_slider.fillRect = fill;
 
             // Handle area
-            var handleArea = MakeRect("Handle Slide Area", sliderGO.transform);
+            var handleArea = MakeRect("Handle Mirror Rotation Size", sliderGO.transform);
             handleArea.anchorMin = Vector2.zero;
             handleArea.anchorMax = Vector2.one;
             handleArea.offsetMin = handleArea.offsetMax = Vector2.zero;
@@ -107,9 +107,9 @@ namespace MirroredAssessment
             m_slider.handleRect = handle;
 
             // Slider range matches the inspector range on m_rotationSensitivity
-            m_slider.minValue = -5f;
-            m_slider.maxValue = 5f;
-            m_slider.value = m_manager.RotationSensitivity;
+            m_slider.minValue = 0f;
+            m_slider.maxValue = 90f;
+            m_slider.value = m_manager.MirrorShrinkingSizeHandler;
             m_slider.onValueChanged.AddListener(OnSliderChanged);
 
             UpdateLabel(m_slider.value);
@@ -133,10 +133,10 @@ namespace MirroredAssessment
         private void Update()
         {
             // Keep the slider in sync when the joystick changes the value externally.
-            if (m_slider != null && !Mathf.Approximately(m_slider.value, m_manager.RotationSensitivity))
+            if (m_slider != null && !Mathf.Approximately(m_slider.value, m_manager.MirrorShrinkingSizeHandler))
             {
                 m_slider.onValueChanged.RemoveListener(OnSliderChanged);
-                m_slider.value = m_manager.RotationSensitivity;
+                m_slider.value = m_manager.MirrorShrinkingSizeHandler;
                 m_slider.onValueChanged.AddListener(OnSliderChanged);
                 UpdateLabel(m_slider.value);
             }
@@ -144,14 +144,14 @@ namespace MirroredAssessment
 
         private void OnSliderChanged(float value)
         {
-            m_manager.RotationSensitivity = value;
+            m_manager.MirrorShrinkingSizeHandler = value;
             UpdateLabel(value);
         }
 
         private void UpdateLabel(float value)
         {
             if (m_label != null)
-                m_label.text = $"Rotation Sensitivity: {value:F2}";
+                m_label.text = $"Yaw Dead Zone: {value:F2}";
         }
 
         private static RectTransform MakeRect(string name, Transform parent)

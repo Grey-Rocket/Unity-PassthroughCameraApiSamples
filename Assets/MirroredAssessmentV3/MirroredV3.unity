@@ -2051,7 +2051,8 @@ MonoBehaviour:
   m_planeSize: 16
   m_imageScale: 2
   m_yawSensitivity: 0.011
-  m_rotationSensitivity: 1.75
+  m_rotationSensitivity: 2.5
+  m_sensitivityChangeSpeed: 2
   m_floorOffset: 2
 --- !u!114 &1748868315269612484
 MonoBehaviour:
