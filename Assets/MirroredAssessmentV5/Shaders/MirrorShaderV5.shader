@@ -5,10 +5,10 @@ Shader "Meta/PCA/MirrorShaderV5"
         _MainTex     ("Texture", 2D)    = "white" {}
         // > 1 zooms out (shows more of the camera image); < 1 zooms in.
         _UVScale     ("UV Scale", Float) = 2.0
-        // 0 = left panel is normal, right panel is mirrored (default).
-        // 1 = left panel is mirrored, right panel is normal.
+        // 0 = left half is source, right half is its mirror (default).
+        // 1 = right half is source, left half is its mirror.
         _MirrorRight ("Mirror Right Side", Float) = 0.0
-        // Positive = gap between panels; negative = panels overlap at centre.
+        // Positive = gap between the two halves; negative = they overlap at centre.
         _Separation  ("Separation", Float) = 0.0
     }
     SubShader
@@ -31,13 +31,14 @@ Shader "Meta/PCA/MirrorShaderV5"
             struct appdata
             {
                 float4 vertex : POSITION;
+                float2 uv     : TEXCOORD0;
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct v2f
             {
-                float4 vertex    : SV_POSITION;
-                float4 screenPos : TEXCOORD0;
+                float4 vertex : SV_POSITION;
+                float2 uv     : TEXCOORD0;
                 UNITY_VERTEX_OUTPUT_STEREO
             };
 
@@ -51,8 +52,8 @@ Shader "Meta/PCA/MirrorShaderV5"
                 v2f o;
                 UNITY_SETUP_INSTANCE_ID(v);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
-                o.vertex    = UnityObjectToClipPos(v.vertex);
-                o.screenPos = ComputeScreenPos(o.vertex);
+                o.vertex = UnityObjectToClipPos(v.vertex);
+                o.uv = v.uv;
                 return o;
             }
 
@@ -60,35 +61,50 @@ Shader "Meta/PCA/MirrorShaderV5"
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 
-                float2 screen = i.screenPos.xy / i.screenPos.w;
+                float2 uv = i.uv;
 
-                // ComputeScreenPos returns per-eye [0,1] on Quest — use directly.
-                float eyeX = screen.x;
-                float eyeY = screen.y;
-
-                // Panel bounds — _Separation opens (positive) or closes (negative) the gap.
+                // _Separation shifts the two panels apart (positive) or together (negative).
                 float halfSep    = _Separation * 0.5;
                 float leftBound  = 0.5 - halfSep;
                 float rightBound = 0.5 + halfSep;
 
-                // t = normalised position within the panel (0→1).
-                // Each panel samples the FULL camera width so neither feels thin.
-                float t;
-                if (eyeX <= leftBound)
-                    t = (leftBound > 0.0) ? (eyeX / leftBound) : 0.0;
-                else if (eyeX >= rightBound)
-                    t = (rightBound < 1.0) ? ((eyeX - rightBound) / (1.0 - rightBound)) : 1.0;
-                else
-                    discard;
-
-                // Left panel = normal view, right panel = mirrored (swap with _MirrorRight).
                 float uvX;
-                if (eyeX <= leftBound)
-                    uvX = (_MirrorRight < 0.5) ? t : (1.0 - t);
+                if (_MirrorRight < 0.5)
+                {
+                    // Left panel: source half of camera (0 → 0.5).
+                    // Right panel: mirror of source (0.5 → 0).
+                    if (uv.x <= leftBound)
+                    {
+                        float t = (leftBound > 0.0) ? (uv.x / leftBound) : 0.0;
+                        uvX = t * 0.5;
+                    }
+                    else if (uv.x >= rightBound)
+                    {
+                        float t = (rightBound < 1.0) ? ((uv.x - rightBound) / (1.0 - rightBound)) : 1.0;
+                        uvX = (1.0 - t) * 0.5;
+                    }
+                    else
+                        discard;
+                }
                 else
-                    uvX = (_MirrorRight < 0.5) ? (1.0 - t) : t;
+                {
+                    // Left panel: mirror of right source (1 → 0.5).
+                    // Right panel: source half of camera (0.5 → 1).
+                    if (uv.x <= leftBound)
+                    {
+                        float t = (leftBound > 0.0) ? (uv.x / leftBound) : 0.0;
+                        uvX = 1.0 - t * 0.5;
+                    }
+                    else if (uv.x >= rightBound)
+                    {
+                        float t = (rightBound < 1.0) ? ((uv.x - rightBound) / (1.0 - rightBound)) : 1.0;
+                        uvX = 0.5 + t * 0.5;
+                    }
+                    else
+                        discard;
+                }
 
-                float2 camUV = float2(uvX, eyeY);
+                float2 camUV = float2(uvX, uv.y);
 
                 // Apply zoom around the centre of the camera image.
                 camUV = (camUV - 0.5) * _UVScale + 0.5;

@@ -49,13 +49,10 @@ namespace MirroredAssessment
             Destroy(m_screenQuad.GetComponent<Collider>());
             m_screenQuad.name = "MirrorScreenQuadV5";
 
-            // Parent to camera and push 100 m out so stereo parallax is imperceptible.
             m_screenQuad.transform.SetParent(m_mainCamera.transform, false);
             m_screenQuad.transform.localPosition = new Vector3(0f, m_verticalOffset, 100f);
 
-            // Oversize the quad (3x FOV coverage) so any FOV calculation imprecision
-            // never leaves visible gaps at the screen edges. The shader uses mesh UVs,
-            // so the visible portion always samples correctly regardless of quad size.
+            // Oversize the quad (3x FOV coverage) so the viewport is always fully covered.
             float halfHeight = Mathf.Tan(m_mainCamera.fieldOfView * 0.5f * Mathf.Deg2Rad) * 100f;
             float halfWidth  = halfHeight * m_mainCamera.aspect;
             m_screenQuad.transform.localScale = new Vector3(halfWidth * 2f * 3f, halfHeight * 2f * 3f, 1f);
