@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace MirroredAssessment
 {
-    public class MirroredAssessmentManagerV4 : MonoBehaviour
+    public class MirroredAssessmentManagerV5 : MonoBehaviour
     {
         [SerializeField] private PassthroughCameraAccess m_cameraAccess;
         [SerializeField] private Shader m_mirrorShader;
