@@ -9,24 +9,18 @@ namespace MirroredAssessment
         [SerializeField] private PassthroughCameraAccess m_cameraAccess;
         [SerializeField] private Shader m_mirrorShader;
 
-        [SerializeField] private float m_planeSize = 16f;
-        [SerializeField] private float m_imageScale = 2f;
-        [SerializeField] private float m_floorOffset = 2f;
-        [SerializeField] private float m_yawSensitivity = 0.011f;
-        [SerializeField] private float m_secondYawSensitivity = 0.011f;
-        [SerializeField] private float m_rotationSensitivity = 2.5f;
-        [SerializeField] private float m_sensitivityChangeSpeed = 2f;
-        [SerializeField] private float m_zoneWhereMirrorIsFull = 5;
-        [SerializeField] private float m_mirrorSplit = 0.5f;
-        [SerializeField] private float m_mirrorRotation = 0;
+        // > 1 zooms out (shows more of the camera image); < 1 zooms in.
+        [SerializeField] private float m_imageScale = 2.0f;
+        [SerializeField] private float m_verticalOffset = 0f;
+        // When false: left half is the source, right half is its mirror.
+        // When true:  right half is the source, left half is its mirror.
+        [SerializeField] private bool m_mirrorRightSide = false;
+        // Positive = gap between the two mirrored halves; negative = they overlap.
+        [SerializeField] private float m_separation = 0f;
 
-
-        private float m_initialYaw;
-        private GameObject m_floorPlane;
+        private GameObject m_screenQuad;
         private Material m_mirrorMaterial;
         private Camera m_mainCamera;
-
-        private Vector3 m_originalCamPosition;
 
         private IEnumerator Start()
         {
@@ -37,32 +31,36 @@ namespace MirroredAssessment
                 yield return null;
 
             m_mainCamera = Camera.main;
-            m_initialYaw = m_mainCamera.transform.eulerAngles.y;
 
             m_mirrorMaterial = new Material(m_mirrorShader);
             m_mirrorMaterial.SetTexture("_MainTex", m_cameraAccess.GetTexture());
             m_mirrorMaterial.SetFloat("_UVScale", m_imageScale);
+            m_mirrorMaterial.SetFloat("_MirrorRight", m_mirrorRightSide ? 1f : 0f);
+            m_mirrorMaterial.SetFloat("_Separation", m_separation);
 
             yield return null;
 
-            CreateFloorMirrorPlane();
-
+            CreateScreenQuad();
         }
 
-        private void CreateFloorMirrorPlane()
+        private void CreateScreenQuad()
         {
-            m_floorPlane = GameObject.CreatePrimitive(PrimitiveType.Quad);
-            Destroy(m_floorPlane.GetComponent<Collider>());
-            m_floorPlane.name = "MirrorFloorPlane";
+            m_screenQuad = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            Destroy(m_screenQuad.GetComponent<Collider>());
+            m_screenQuad.name = "MirrorScreenQuadV5";
 
-            // Fixed world position directly below the user at startup — does not follow them.
-            m_originalCamPosition = m_mainCamera.transform.position;
-            m_floorPlane.transform.position = new Vector3(m_originalCamPosition.x, m_originalCamPosition.y - m_floorOffset, m_originalCamPosition.z);
-            // Euler(90, 0, 0) rotates the quad's normal from +Z to +Y — horizontal floor.
-            m_floorPlane.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
-            m_floorPlane.transform.localScale = new Vector3(m_planeSize, m_planeSize, 1f);
+            // Parent to camera and push 100 m out so stereo parallax is imperceptible.
+            m_screenQuad.transform.SetParent(m_mainCamera.transform, false);
+            m_screenQuad.transform.localPosition = new Vector3(0f, m_verticalOffset, 100f);
 
-            var mr = m_floorPlane.GetComponent<MeshRenderer>();
+            // Oversize the quad (3x FOV coverage) so any FOV calculation imprecision
+            // never leaves visible gaps at the screen edges. The shader uses mesh UVs,
+            // so the visible portion always samples correctly regardless of quad size.
+            float halfHeight = Mathf.Tan(m_mainCamera.fieldOfView * 0.5f * Mathf.Deg2Rad) * 100f;
+            float halfWidth  = halfHeight * m_mainCamera.aspect;
+            m_screenQuad.transform.localScale = new Vector3(halfWidth * 2f * 3f, halfHeight * 2f * 3f, 1f);
+
+            var mr = m_screenQuad.GetComponent<MeshRenderer>();
             mr.material = m_mirrorMaterial;
             mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             mr.receiveShadows = false;
@@ -70,50 +68,20 @@ namespace MirroredAssessment
 
         private void Update()
         {
-            if (m_floorPlane == null) return;
-
-            m_floorPlane.transform.position = new Vector3(m_originalCamPosition.x, m_originalCamPosition.y - m_floorOffset, m_originalCamPosition.z);
+            if (m_screenQuad == null) return;
 
             m_mirrorMaterial.SetFloat("_UVScale", m_imageScale);
-
-            // Pass a mono (center-eye) VP matrix so both stereo eyes sample the
-            // same UV — prevents double-vision caused by stereo parallax on a
-            // close floor plane.
-            Matrix4x4 vp = m_mainCamera.projectionMatrix * m_mainCamera.worldToCameraMatrix;
-            m_mirrorMaterial.SetMatrix("_MonoCameraVP", vp);
-
-            // Map head yaw to mirror split:
-            //   center (deltaYaw = 0) → splitX = 0.5 (left half mirrored, right half normal)
-            //   looking right (positive deltaYaw) → splitX → 0 (no mirror)
-            //   looking left (negative deltaYaw) → clamped at 0.5 (still 50/50)
-            if (OVRInput.GetDown(OVRInput.Button.One))
-                m_initialYaw = m_mainCamera.transform.eulerAngles.y;
-
-            float deltaYaw = Mathf.DeltaAngle(m_initialYaw, m_mainCamera.transform.eulerAngles.y);
-            float splitX = Mathf.Clamp(m_mirrorSplit - Mathf.Max(0f, Mathf.Abs(deltaYaw) - m_zoneWhereMirrorIsFull) * m_yawSensitivity, 0f, m_mirrorSplit);
-            m_mirrorMaterial.SetFloat("_SplitX", splitX);
-
-            // Right joystick X axis adjusts rotation sensitivity.
-            // float joystickX = OVRInput.Get(OVRInput.Axis2D.SecondaryThumbstick).x;
-            // m_minRotationToStartCutting = Mathf.Clamp(
-            //     m_minRotationToStartCutting + joystickX * m_sensitivityChangeSpeed * Time.deltaTime,
-            //     0, 90f);
-
-            float headRoll = m_mainCamera.transform.eulerAngles.z;
-            // eulerAngles.z is 0-360; remap to -180..180 so tilting left/right gives signed values.
-            if (headRoll > 180f) headRoll -= 360f;
-            float mirrorRotation = headRoll * m_rotationSensitivity + deltaYaw * m_secondYawSensitivity;
-            m_mirrorMaterial.SetFloat("_MirrorRotation", mirrorRotation);
+            m_mirrorMaterial.SetFloat("_MirrorRight", m_mirrorRightSide ? 1f : 0f);
+            m_mirrorMaterial.SetFloat("_Separation", m_separation);
         }
 
         private void OnDestroy()
         {
-            if (m_floorPlane != null)
-                Destroy(m_floorPlane);
+            if (m_screenQuad != null)
+                Destroy(m_screenQuad);
 
             if (m_mirrorMaterial != null)
                 Destroy(m_mirrorMaterial);
         }
-
     }
 }
