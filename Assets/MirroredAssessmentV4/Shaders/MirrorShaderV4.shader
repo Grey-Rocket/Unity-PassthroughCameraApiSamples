@@ -17,6 +17,53 @@ Shader "Meta/PCA/MirrorShaderV4"
         Tags { "RenderType"="Opaque" "Queue"="Geometry+1" }
         LOD 100
 
+        // Pass 1: paint the entire screen black before the floor mirror renders.
+        // The floor plane's local vertices map to clip-space [-1,1] corners,
+        // covering the full viewport per eye without needing a separate quad.
+        Pass
+        {
+            ZTest Always
+            ZWrite Off
+            Cull Off
+            CGPROGRAM
+            #pragma vertex vert_black
+            #pragma fragment frag_black
+            #pragma multi_compile_instancing
+            #include "UnityCG.cginc"
+
+            struct appdata_b
+            {
+                float4 vertex : POSITION;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+            };
+
+            struct v2f_b
+            {
+                float4 vertex : SV_POSITION;
+                UNITY_VERTEX_OUTPUT_STEREO
+            };
+
+            v2f_b vert_black(appdata_b v)
+            {
+                v2f_b o;
+                UNITY_SETUP_INSTANCE_ID(v);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+                // Unity Quad local verts are in [-0.5, 0.5]; multiply by 2 to reach
+                // clip-space [-1, 1] corners — full screen, ignoring world transform.
+                o.vertex = float4(v.vertex.xy * 2.0, 0, 1);
+                return o;
+            }
+
+            fixed4 frag_black(v2f_b i) : SV_Target
+            {
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
+                return fixed4(0, 0, 0, 1);
+            }
+            ENDCG
+        }
+
+        // Pass 2: draw the floor mirror; discard out-of-range fragments so the
+        // black from Pass 1 shows through wherever the camera image doesn't reach.
         Pass
         {
             ZWrite On
