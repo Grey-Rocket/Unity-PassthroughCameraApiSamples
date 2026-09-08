@@ -17,6 +17,8 @@ namespace MirroredAssessment
         [SerializeField] private bool m_mirrorRightSide = false;
         // Positive = gap between the two mirrored halves; negative = they overlap.
         [SerializeField] private float m_separation = 0f;
+        // Side length of the centre square as a fraction of screen height (0–1).
+        [SerializeField] private float m_squareSize = 0.8f;
 
         private GameObject m_screenQuad;
         private Material m_mirrorMaterial;
@@ -37,6 +39,7 @@ namespace MirroredAssessment
             m_mirrorMaterial.SetFloat("_UVScale", m_imageScale);
             m_mirrorMaterial.SetFloat("_MirrorRight", m_mirrorRightSide ? 1f : 0f);
             m_mirrorMaterial.SetFloat("_Separation", m_separation);
+            SetSquareUniforms();
 
             yield return null;
 
@@ -70,6 +73,17 @@ namespace MirroredAssessment
             m_mirrorMaterial.SetFloat("_UVScale", m_imageScale);
             m_mirrorMaterial.SetFloat("_MirrorRight", m_mirrorRightSide ? 1f : 0f);
             m_mirrorMaterial.SetFloat("_Separation", m_separation);
+            SetSquareUniforms();
+        }
+
+        // The quad is 3x the screen size, so the visible screen occupies UV [1/3, 2/3].
+        // halfY = squareSize * 0.5 * (1/3); halfX accounts for aspect ratio.
+        private void SetSquareUniforms()
+        {
+            float halfY = m_squareSize * 0.5f / 3.0f;
+            float halfX = halfY / m_mainCamera.aspect;
+            m_mirrorMaterial.SetFloat("_SquareHalfX", halfX);
+            m_mirrorMaterial.SetFloat("_SquareHalfY", halfY);
         }
 
         private void OnDestroy()

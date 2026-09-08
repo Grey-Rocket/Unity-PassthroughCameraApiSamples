@@ -2005,6 +2005,7 @@ MonoBehaviour:
   m_verticalOffset: -20
   m_mirrorRightSide: 0
   m_separation: 0
+  m_squareSize: 0.8
 --- !u!114 &1748868315269612484
 MonoBehaviour:
   m_ObjectHideFlags: 0

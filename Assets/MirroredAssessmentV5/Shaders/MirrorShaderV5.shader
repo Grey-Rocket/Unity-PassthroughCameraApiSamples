@@ -10,12 +10,61 @@ Shader "Meta/PCA/MirrorShaderV5"
         _MirrorRight ("Mirror Right Side", Float) = 0.0
         // Positive = gap between the two halves; negative = they overlap at centre.
         _Separation  ("Separation", Float) = 0.0
+        // Half-extents of the centre square in quad UV space (set from C#).
+        _SquareHalfX ("Square Half X", Float) = 0.133
+        _SquareHalfY ("Square Half Y", Float) = 0.133
     }
     SubShader
     {
         Tags { "RenderType"="Opaque" "Queue"="Overlay" }
         LOD 100
 
+        // Pass 1: fill the entire quad solid black.
+        // This guarantees the border area is opaque black in the framebuffer,
+        // blocking any passthrough compositor layer behind it.
+        Pass
+        {
+            ZTest Always
+            ZWrite Off
+            Cull Off
+
+            CGPROGRAM
+            #pragma vertex vert_black
+            #pragma fragment frag_black
+            #pragma multi_compile_instancing
+            #include "UnityCG.cginc"
+
+            struct appdata_black
+            {
+                float4 vertex : POSITION;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+            };
+
+            struct v2f_black
+            {
+                float4 vertex : SV_POSITION;
+                UNITY_VERTEX_OUTPUT_STEREO
+            };
+
+            v2f_black vert_black(appdata_black v)
+            {
+                v2f_black o;
+                UNITY_SETUP_INSTANCE_ID(v);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+                o.vertex = UnityObjectToClipPos(v.vertex);
+                return o;
+            }
+
+            fixed4 frag_black(v2f_black i) : SV_Target
+            {
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
+                return fixed4(0, 0, 0, 1);
+            }
+            ENDCG
+        }
+
+        // Pass 2: draw the camera panels inside the centre square; discard everything
+        // else so Pass 1's black remains visible in the border area.
         Pass
         {
             ZTest Always
@@ -46,6 +95,8 @@ Shader "Meta/PCA/MirrorShaderV5"
             float     _UVScale;
             float     _MirrorRight;
             float     _Separation;
+            float     _SquareHalfX;
+            float     _SquareHalfY;
 
             v2f vert(appdata v)
             {
@@ -62,6 +113,11 @@ Shader "Meta/PCA/MirrorShaderV5"
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 
                 float2 uv = i.uv;
+
+                // Discard outside the centre square — Pass 1's black shows through.
+                if (uv.x < 0.5 - _SquareHalfX || uv.x > 0.5 + _SquareHalfX ||
+                    uv.y < 0.5 - _SquareHalfY  || uv.y > 0.5 + _SquareHalfY)
+                    discard;
 
                 // _Separation shifts the two panels apart (positive) or together (negative).
                 float halfSep    = _Separation * 0.5;
