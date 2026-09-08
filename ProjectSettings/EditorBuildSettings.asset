@@ -32,15 +32,18 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/MirroredAssessmentV3/MirroredV3.unity
     guid: 475e7f323cf67ef49a3161630a169a07
-  - enabled: 1
+  - enabled: 0
     path: Assets/MirroredAssessmentV4/MirroredV4.unity
     guid: fe42d0583e13a694faaad1b421bb74fc
   - enabled: 0
     path: Assets/SlidersPrototype/SlidersPrototype.unity
     guid: 52b5a44b99ae07e4e824d9de1b9b82f3
-  - enabled: 0
+  - enabled: 1
     path: Assets/MirroredAssessmentV5/MirroredV5.unity
     guid: 78955ac5c7161af46ad4e41dd06fb693
+  - enabled: 0
+    path: Assets/MirroredAssessmentV6/MirroredV6.unity
+    guid: d3231a12836e2404eb4e1f73177a0271
   m_configObjects:
     Unity.XR.Oculus.Settings: {fileID: 11400000, guid: f2bf97b3acdb64248a707c407c9fc54e, type: 2}
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: a971eac5e950046e586c5e153e32d05c, type: 2}

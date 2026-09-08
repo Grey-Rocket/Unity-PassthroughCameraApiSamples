@@ -1964,7 +1964,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3000000011}
-  - component: {fileID: 3000000012}
+  - component: {fileID: 3000000013}
   m_Layer: 0
   m_Name: MirroredAssessmentSetup
   m_TagString: Untagged
@@ -1987,7 +1987,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &3000000012
+--- !u!114 &3000000013
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1996,16 +1996,21 @@ MonoBehaviour:
   m_GameObject: {fileID: 3000000010}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9147694affa168b4089d554999fc9187, type: 3}
+  m_Script: {fileID: 11500000, guid: f3503c5c08d8aa3449f03e2f0093a83e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_cameraAccess: {fileID: 1748868315269612484}
-  m_mirrorShader: {fileID: 4800000, guid: ae466f7ed981e5e4bbddbd9bae66787d, type: 3}
-  m_imageScale: 8
-  m_verticalOffset: -20
-  m_mirrorRightSide: 1
-  m_separation: 0
-  m_squareSize: 0.8
+  m_mirrorShader: {fileID: 4800000, guid: 9f70a737917a03c408b2dd8fa9d99972, type: 3}
+  m_planeSize: 16
+  m_imageScale: 2
+  m_floorOffset: 2
+  m_yawSensitivity: 0.011
+  m_secondYawSensitivity: 0.011
+  m_rotationSensitivity: 2.5
+  m_sensitivityChangeSpeed: 2
+  m_zoneWhereMirrorIsFull: 5
+  m_mirrorSplit: 0.5
+  m_mirrorRotation: 0
 --- !u!114 &1748868315269612484
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2018,7 +2023,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ef9a7893e57c04c0db4114c70954b915, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  CameraPosition: 1
+  CameraPosition: 0
   RequestedResolution: {x: 640, y: 480}
   _maxFramerate: 60
   TargetMaterial: {fileID: 0}
