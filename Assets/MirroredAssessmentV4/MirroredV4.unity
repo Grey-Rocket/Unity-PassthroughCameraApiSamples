@@ -1996,11 +1996,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 3000000010}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 359a2ba5b1a447b4284ef510eb3376f5, type: 3}
+  m_Script: {fileID: 11500000, guid: f53dd36e3a136e349bb465385b8dc2a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_cameraAccess: {fileID: 1748868315269612484}
-  m_mirrorShader: {fileID: 4800000, guid: 5f3db7bb2922c7742aef4c41f1e0e736, type: 3}
+  m_mirrorShader: {fileID: 4800000, guid: 6beae409be9ee1a49baacc17356fb582, type: 3}
   m_planeSize: 16
   m_imageScale: 2
   m_floorOffset: 2
