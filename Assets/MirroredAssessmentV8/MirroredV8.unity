@@ -1725,7 +1725,7 @@ Transform:
   m_GameObject: {fileID: 1683232069}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.147, y: 0.3176, z: 0.33}
+  m_LocalPosition: {x: 0.0141, y: 0.181, z: 0.583}
   m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -2416,8 +2416,13 @@ MonoBehaviour:
     m_Bits: 256
   m_contentTextureScale: 2
   m_mirrorContentRoots: []
-  m_mirrorContentShader: {fileID: 4800000, guid: 7c3f1a9e4b2d4e51a8c06d7f5b1e3a42, type: 3}
+  m_includeHandVisuals: 1
+  m_handColor: {r: 1, g: 0.85, b: 0.72, a: 1}
   m_reachTarget: {fileID: 1683232076}
+  m_reachOffset: {x: 0.1, y: -0.15, z: 0.4}
+  m_mirrorContentShader: {fileID: 0}
+  m_logDiagnostics: 1
+  m_diagnosticsInterval: 2
 --- !u!114 &1748868315269612484
 MonoBehaviour:
   m_ObjectHideFlags: 0
