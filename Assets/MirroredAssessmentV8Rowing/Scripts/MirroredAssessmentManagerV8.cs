@@ -173,6 +173,22 @@ namespace MirroredAssessment
                 Quaternion.LookRotation(forward, Vector3.up));
         }
 
+        // Re-places the target in front of the head and stops any motion it had, so a
+        // thrown or dropped cube does not keep sliding after it comes back.
+        private void ResetReachTarget()
+        {
+            if (m_reachTarget == null) return;
+
+            PlaceReachTarget();
+
+            var rb = m_reachTarget.GetComponent<Rigidbody>();
+            if (rb != null && !rb.isKinematic)
+            {
+                rb.linearVelocity = Vector3.zero;
+                rb.angularVelocity = Vector3.zero;
+            }
+        }
+
         // Fully qualified rather than imported: Oculus.Interaction declares types that
         // collide with names used here.
         private void CollectContentRoots()
@@ -242,6 +258,10 @@ namespace MirroredAssessment
             ApplyMirrorContentLayer();
             RenderContent();
             LogDiagnostics();
+
+            // A on the right controller puts the reach target back where it started.
+            if (m_contentCamera != null && OVRInput.GetDown(OVRInput.Button.One))
+                ResetReachTarget();
 
             if (m_screenQuad == null) return;
 
